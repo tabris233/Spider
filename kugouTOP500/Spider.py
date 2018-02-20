@@ -1,8 +1,8 @@
-import time
+import time # 引入time模块  使用time()函数
 
-import requests
-from bs4 import BeautifulSoup
-from pymongo import MongoClient
+import requests # http客户端库 
+from bs4 import BeautifulSoup # bs4 处理HTML源码
+from pymongo import MongoClient # MongoDB数据库
 
 # 解决乱码
 import io
@@ -13,17 +13,15 @@ sys.stdout = io.TextIOWrapper(
 res = urllib.request.urlopen('http://www.baidu.com')
 htmlBytes = res.read()
 print(htmlBytes.decode('utf-8'))
-
 # 解决乱码结束
 
-client = MongoClient()
-songs = client.kugou_db.songs
+client = MongoClient() # 数据库客户端
+songs = client.kugou_db.songs # 数据库的表 
 
-
+# 爬虫的身份吧
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
 }
- 
 
 def get_info(url):
     wb_data = requests.get(url,headers=headers)
@@ -50,6 +48,4 @@ if __name__ == '__main__':
     for url in urls:
         # print(url)
         get_info(url)
-        time.sleep(1)
-        
-        
+        time.sleep(1) # 休眠1s
