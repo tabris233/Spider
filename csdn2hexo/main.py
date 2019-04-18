@@ -76,20 +76,11 @@ class Exporter(Analyzer):
         return detail.find(id='article_content')
 
     def getHexoTitleMarkdown(self, detail):
-        '''
-        title: 面试学习.
-        date: 2018-1-29 12:44:08
-        categories:
-        tags: [面试, C + +, 大数据, 操作系统, 计算机网络]  # 文章标签，可空，多标签请用格式，注意:后面有个空格
-        description:
-        toc: true
-        '''
-
         title = '<' + \
                 html2text.html2text(detail.find(class_='article-title-box').span.prettify()).rstrip('\n') + \
                 '>' + \
                 html2text.html2text(detail.find(class_='title-article').prettify()).rstrip('\n')
-        date = html2text.html2text(detail.find(class_='time').prettify()).rstrip('\n')
+        date = html2text.html2text(detail.find(class_='time').prettify()).replace('\n', '')
         date = date[:4] + '-' + date[5:7] + '-' + date[8:10] + ' ' + date[-8:]
         # print('=' * 80 + '\n')
         # print(detail)
@@ -101,21 +92,32 @@ class Exporter(Analyzer):
         #     tag = html2text.html2text(tag)
         #     print(tag)
         tags = map(deleteURL, map(lambda x: x.replace('\n', ''), map(html2text.html2text, map(lambda x: x.prettify(), tags))))
-        print(tags)
-        tags = ','.join(tags)
+        # print(tags)
+        tags = ''.join(map(lambda x: '  - ' + x + '\n', map(lambda x: x.replace('=', '').strip(), tags)))
         # print(title, date, tags)
         str = u'''---
 title: %s
 date: %s
-categories:
-tags: [%s]  # 文章标签，可空，多标签请用格式，注意:后面有个空格
 description:
 toc: true
+author: tabris
+# 图片推荐使用图床(腾讯云、七牛云、又拍云等)来做图片的路径.如:http://xxx.com/xxx.jpg
+img: 
+# 如果top值为true，则会是首页推荐文章
+top: false
+# 如果要对文章设置阅读验证密码的话，就可以在设置password的值，该值必须是用SHA256加密后的密码，防止被他人识破
+password: 
+# 本文章是否开启mathjax，且需要在主题的_config.yml文件中也需要开启才行
+mathjax: false
+summary: 这是你自定义的文章摘要内容，如果这个属性有值，文章卡片摘要就显示这段文字，否则程序会自动截取文章的部分内容作为摘要
+categories: OJ算法题
+tags:
+%s
 ---
 
-''' % (title, date, tags)
+''' % (title.replace('\n', '').replace(':', ' '), date.replace(':', ' '), tags.replace(':', ' '))
         # print(str)
-
+        # exit(0)
         return str
 
     def spiderDate(self):
@@ -127,7 +129,7 @@ toc: true
         f.write('\n\n')
         f.write(html2text.html2text(self.getTitle(detail).prettify())[2:])
         f.write(self.spiderDate())
-        f.write(html2text.html2text(self.getArticleContent(detail).prettify()))
+        f.write(html2text.html2text(self.getArticleContent(detail).prettify()).replace('{', '&#123;').replace('}', '&#125;'))
 
     # export as html
     def export2html(self, f, detail):
@@ -176,27 +178,26 @@ class Parser(Analyzer):
     def getPageNum(self, html_doc):
         self.page = 17
         return self.page
-        soup = BeautifulSoup(html_doc, 'lxml')
-        # papelist if a typo written by csdn front-end programmers?
-        pageList = self.getContent(soup).find(id='papelist')
-        # if there is only a little posts in one blog, the papelist element doesn't even exist
-        if pageList == None:
-        	print "Page is 1"
-        	return 1
-        res = pageList.span
-        # get the page from text
-        buf = str(res).split(' ')[3]
-        strpage = ''
-        for i in buf:
-            if i >= '0' and i <= '9':
-                strpage += i
-        # cast str to int
-        self.page =  int(strpage)
-        return self.page
+        # soup = BeautifulSoup(html_doc, 'lxml')
+        # # papelist if a typo written by csdn front-end programmers?
+        # pageList = self.getContent(soup).find(id='papelist')
+        # # if there is only a little posts in one blog, the papelist element doesn't even exist
+        # if pageList == None:
+        # 	print "Page is 1"
+        # 	return 1
+        # res = pageList.span
+        # # get the page from text
+        # buf = str(res).split(' ')[3]
+        # strpage = ''
+        # for i in buf:
+        #     if i >= '0' and i <= '9':
+        #         strpage += i
+        # # cast str to int
+        # self.page =  int(strpage)
+        # return self.page
 
     # get all the link
     def getAllArticleLink(self, url):
-    	# get the num of the page
         self.getPageNum(self.get(url))
         # iterate all the pages
         for i in range(1, self.page + 1):
