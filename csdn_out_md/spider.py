@@ -21,6 +21,7 @@ toc: true
 author: tabris
 summary: "{description}"
 categories: {categories}
+mathjax: true # false: 不渲染, true: 渲染, internal: 只在文章内部渲染，文章列表中不渲染
 tags: {tags}
 key: {key}
 ---
@@ -57,7 +58,7 @@ def request_md(blog_id, blog_info):
     """获取博客包含markdown文本的json数据"""
     url = f"https://blog-console-api.csdn.net/v1/editor/getArticle?id={blog_id}"
     headers = {
-        "cookie": "uuid_tt_dd=10_9923125910-1585743227120-322102; dc_session_id=10_1585743227120.934232; _ga=GA1.2.536173610.1585815737; __yadk_uid=dk7EvrJ8PZyOoVLaxJUAvmeS63xkaAbN; UserName=qq_33184171; UserInfo=aee18eac8bfe4df4a96704e8c1bdd168; UserToken=aee18eac8bfe4df4a96704e8c1bdd168; UserNick=Tabris_; AU=54F; UN=qq_33184171; BT=1588581483957; p_uid=U000000; Hm_ct_6bcd52f51e9b3dce32bec4a3997715ac=6525*1*10_9923125910-1585743227120-322102!5744*1*qq_33184171; Hm_up_6bcd52f51e9b3dce32bec4a3997715ac=%7B%22islogin%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isonline%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isvip%22%3A%7B%22value%22%3A%220%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22qq_33184171%22%2C%22scope%22%3A1%7D%7D; dc_sid=0dfd33c619d4bcb40b2f43d23f3cb9e3; TY_SESSION_ID=42b2b7d4-17de-4cb1-9301-662fb335d1a5; aliyun_webUmidToken=T2gAH3dNncDq+XdWayVvC+ryaCqcDA9GlxWr6WauHpW0mulwJOzirvXiwbqVGMPAV6mts4FuxKDG3b2o64fi9GHB; Hm_lvt_e5ef47b9f471504959267fd614d579cd=1591796554; Hm_lpvt_e5ef47b9f471504959267fd614d579cd=1591796554; Hm_up_e5ef47b9f471504959267fd614d579cd=%7B%22islogin%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isonline%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isvip%22%3A%7B%22value%22%3A%220%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22qq_33184171%22%2C%22scope%22%3A1%7D%7D; Hm_ct_e5ef47b9f471504959267fd614d579cd=5744*1*qq_33184171!6525*1*10_9923125910-1585743227120-322102; c_first_ref=www.google.com; _gid=GA1.2.495504218.1591938897; c_utm_medium=distribute.pc_relevant.none-task-blog-baidujs-2; c_first_page=https%3A//blog.csdn.net/elaine_bao/article/details/78668657; Hm_lvt_6bcd52f51e9b3dce32bec4a3997715ac=1591940697,1591941146,1591941830,1591950262; announcement=%257B%2522isLogin%2522%253Atrue%252C%2522announcementUrl%2522%253A%2522https%253A%252F%252Flive.csdn.net%252Froom%252Fbjchenxu%252FvVsg8RCt%2522%252C%2522announcementCount%2522%253A0%252C%2522announcementExpire%2522%253A258044919%257D; c_adb=1; c_ref=https%3A//blog.csdn.net/qq_33184171/article/details/50274193; dc_tos=qbuqlr; Hm_lpvt_6bcd52f51e9b3dce32bec4a3997715ac=1592030512",
+        "cookie": "uuid_tt_dd=10_9923125910-1585743227120-322102; dc_session_id=10_1585743227120.934232; _ga=GA1.2.536173610.1585815737; __yadk_uid=dk7EvrJ8PZyOoVLaxJUAvmeS63xkaAbN; UserName=qq_33184171; UserInfo=aee18eac8bfe4df4a96704e8c1bdd168; UserToken=aee18eac8bfe4df4a96704e8c1bdd168; UserNick=Tabris_; AU=54F; UN=qq_33184171; BT=1588581483957; p_uid=U000000; Hm_ct_6bcd52f51e9b3dce32bec4a3997715ac=6525*1*10_9923125910-1585743227120-322102!5744*1*qq_33184171; Hm_up_6bcd52f51e9b3dce32bec4a3997715ac=%7B%22islogin%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isonline%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isvip%22%3A%7B%22value%22%3A%220%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22qq_33184171%22%2C%22scope%22%3A1%7D%7D; Hm_lvt_e5ef47b9f471504959267fd614d579cd=1591796554; Hm_up_e5ef47b9f471504959267fd614d579cd=%7B%22islogin%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isonline%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isvip%22%3A%7B%22value%22%3A%220%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22qq_33184171%22%2C%22scope%22%3A1%7D%7D; Hm_ct_e5ef47b9f471504959267fd614d579cd=5744*1*qq_33184171!6525*1*10_9923125910-1585743227120-322102; announcement=%257B%2522isLogin%2522%253Atrue%252C%2522announcementUrl%2522%253A%2522https%253A%252F%252Flive.csdn.net%252Froom%252Fbjchenxu%252FvVsg8RCt%2522%252C%2522announcementCount%2522%253A0%252C%2522announcementExpire%2522%253A258044919%257D; dc_sid=ce668c898e35012f6eea7f7d1b34308f; TY_SESSION_ID=be590c8d-497b-4dbe-b1fa-738112f3d62b; c_first_ref=www.google.com; c_first_page=https%3A//blog.csdn.net/gqv2009/article/details/85062539; Hm_lvt_6bcd52f51e9b3dce32bec4a3997715ac=1591941146,1591941830,1591950262,1592129857; _gid=GA1.2.412282664.1592129859; c_ref=https%3A//blog.csdn.net/gqv2009/article/details/85062539; c_adb=1; Hm_lpvt_6bcd52f51e9b3dce32bec4a3997715ac=1592144155; dc_tos=qbx6aj",
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
     }
     data = {"id": blog_id}
@@ -82,7 +83,7 @@ def request_md(blog_id, blog_info):
 def write_hexo_md(data, blog_info):
     """将获取的json数据解析为hexo的markdown格式"""
 
-    title       = blog_info[-1] + data["data"]["title"]
+    title       = "[" + blog_info[-1] + "]" + data["data"]["title"]
     description = data["data"]["description"]
 
     tags       = "[CSDN," + data["data"]["tags"] + "]"
@@ -130,7 +131,6 @@ https://blog.csdn.net/qq_33184171/article/details/{blog_id}
     with open(f"./blogs/{name}.md", "w", encoding="utf-8") as f:
         f.write(header)
         f.write(posts_top)
-        f.write(content)
         f.write(content)
 
     print(f"写入 {name}")
