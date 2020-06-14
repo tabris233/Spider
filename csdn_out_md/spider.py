@@ -4,33 +4,7 @@
 # @Author  : Kaiyan Zhang (kaiyanzh@outlook.com)
 # @Link    : https://github.com/iseesaw
 # @Version : v1.0
-"""
-将csdn博客导出为markdown
-方法：
-1. 编辑博客，抓包
-2. 获取博客markdown格式链接
-https://mp.csdn.net/mdeditor/getArticle?id=100125817
-3. 模拟请求
-Request Headers
-:authority: bizapi.csdn.net
-:method: GET
-:path: /blog-console-api/v1/article/getQueryCriteriaNew
-:scheme: https
-accept: application/json, text/plain, */*
-accept-encoding: gzip, deflate, br
-accept-language: zh-CN,zh;q=0.9,en-GB;q=0.8,en;q=0.7
-cookie: uuid_tt_dd=10_9923125910-1585743227120-322102; dc_session_id=10_1585743227120.934232; _ga=GA1.2.536173610.1585815737; UserName=qq_33184171; UserInfo=aee18eac8bfe4df4a96704e8c1bdd168; UserToken=aee18eac8bfe4df4a96704e8c1bdd168; UserNick=Tabris_; AU=54F; UN=qq_33184171; BT=1588581483957; p_uid=U000000; Hm_ct_6bcd52f51e9b3dce32bec4a3997715ac=6525*1*10_9923125910-1585743227120-322102!5744*1*qq_33184171; Hm_up_6bcd52f51e9b3dce32bec4a3997715ac=%7B%22islogin%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isonline%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isvip%22%3A%7B%22value%22%3A%220%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22qq_33184171%22%2C%22scope%22%3A1%7D%7D; dc_sid=0dfd33c619d4bcb40b2f43d23f3cb9e3; announcement=%257B%2522isLogin%2522%253Atrue%252C%2522announcementUrl%2522%253A%2522https%253A%252F%252Flive.csdn.net%252Froom%252Fbjchenxu%252FvVsg8RCt%2522%252C%2522announcementCount%2522%253A1%252C%2522announcementExpire%2522%253A258044919%257D; _gid=GA1.2.437537726.1591763590; c_adb=1; c_first_ref=www.google.com; c_utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-9.nonecase; c_first_page=https%3A//blog.csdn.net/qq_36962569/article/details/100167955; Hm_lvt_6bcd52f51e9b3dce32bec4a3997715ac=1591769767,1591779463,1591779574,1591779596; c_ref=https%3A//blog.csdn.net/qq_33184171/article/details/51066516; dc_tos=qbpde2; Hm_lpvt_6bcd52f51e9b3dce32bec4a3997715ac=1591780107
-origin: https://mp.csdn.net
-referer: https://mp.csdn.net/console/article
-sec-fetch-dest: empty
-sec-fetch-mode: cors
-sec-fetch-site: same-site
-user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36
-x-ca-key: 203803574
-x-ca-nonce: 3daf3bfc-736c-41d3-aa88-d1359cefcc3c
-x-ca-signature: jn3nfJ0rWFAo0Xmfi7KpViUTWs6C5MdJc61PAC89xxk=
-x-ca-signature-headers: x-ca-key,x-ca-nonce
-"""
+
 import json
 import uuid
 import time
@@ -38,20 +12,13 @@ import requests
 import datetime
 from bs4 import BeautifulSoup
 
+import blogs_list
+
 yaml = u'''---
 title: "{title}"
 date: {date}
-description:
 toc: true
 author: tabris
-# 图片推荐使用图床(腾讯云、七牛云、又拍云等)来做图片的路径.如:http://xxx.com/xxx.jpg
-img:
-# 如果top值为true，则会是首页推荐文章
-top: false
-# 如果要对文章设置阅读验证密码的话，就可以在设置password的值，该值必须是用SHA256加密后的密码，防止被他人识破
-password:
-# 本文章是否开启mathjax，且需要在主题的_config.yml文件中也需要开启才行
-mathjax: false
 summary: "{description}"
 categories: {categories}
 tags: {tags}
@@ -90,7 +57,7 @@ def request_md(blog_id, blog_info):
     """获取博客包含markdown文本的json数据"""
     url = f"https://blog-console-api.csdn.net/v1/editor/getArticle?id={blog_id}"
     headers = {
-        "cookie": "uuid_tt_dd=10_9923125910-1585743227120-322102; dc_session_id=10_1585743227120.934232; _ga=GA1.2.536173610.1585815737; UserName=qq_33184171; UserInfo=aee18eac8bfe4df4a96704e8c1bdd168; UserToken=aee18eac8bfe4df4a96704e8c1bdd168; UserNick=Tabris_; AU=54F; UN=qq_33184171; BT=1588581483957; p_uid=U000000; Hm_ct_6bcd52f51e9b3dce32bec4a3997715ac=6525*1*10_9923125910-1585743227120-322102!5744*1*qq_33184171; Hm_up_6bcd52f51e9b3dce32bec4a3997715ac=%7B%22islogin%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isonline%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isvip%22%3A%7B%22value%22%3A%220%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22qq_33184171%22%2C%22scope%22%3A1%7D%7D; dc_sid=0dfd33c619d4bcb40b2f43d23f3cb9e3; announcement=%257B%2522isLogin%2522%253Atrue%252C%2522announcementUrl%2522%253A%2522https%253A%252F%252Flive.csdn.net%252Froom%252Fbjchenxu%252FvVsg8RCt%2522%252C%2522announcementCount%2522%253A1%252C%2522announcementExpire%2522%253A258044919%257D; _gid=GA1.2.437537726.1591763590; c_first_ref=www.google.com; c_utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-9.nonecase; aliyun_webUmidToken=T2gAH3dNncDq+XdWayVvC+ryaCqcDA9GlxWr6WauHpW0mulwJOzirvXiwbqVGMPAV6mts4FuxKDG3b2o64fi9GHB; c_first_page=https%3A//blog.csdn.net/zcmlimi/article/details/47709049; c_ref=https%3A//www.google.com/; Hm_lvt_6bcd52f51e9b3dce32bec4a3997715ac=1591779463,1591779574,1591779596,1591789117; c_adb=1; dc_tos=qbpkhb; Hm_lpvt_6bcd52f51e9b3dce32bec4a3997715ac=1591789296",
+        "cookie": "uuid_tt_dd=10_9923125910-1585743227120-322102; dc_session_id=10_1585743227120.934232; _ga=GA1.2.536173610.1585815737; __yadk_uid=dk7EvrJ8PZyOoVLaxJUAvmeS63xkaAbN; UserName=qq_33184171; UserInfo=aee18eac8bfe4df4a96704e8c1bdd168; UserToken=aee18eac8bfe4df4a96704e8c1bdd168; UserNick=Tabris_; AU=54F; UN=qq_33184171; BT=1588581483957; p_uid=U000000; Hm_ct_6bcd52f51e9b3dce32bec4a3997715ac=6525*1*10_9923125910-1585743227120-322102!5744*1*qq_33184171; Hm_up_6bcd52f51e9b3dce32bec4a3997715ac=%7B%22islogin%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isonline%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isvip%22%3A%7B%22value%22%3A%220%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22qq_33184171%22%2C%22scope%22%3A1%7D%7D; dc_sid=0dfd33c619d4bcb40b2f43d23f3cb9e3; TY_SESSION_ID=42b2b7d4-17de-4cb1-9301-662fb335d1a5; aliyun_webUmidToken=T2gAH3dNncDq+XdWayVvC+ryaCqcDA9GlxWr6WauHpW0mulwJOzirvXiwbqVGMPAV6mts4FuxKDG3b2o64fi9GHB; Hm_lvt_e5ef47b9f471504959267fd614d579cd=1591796554; Hm_lpvt_e5ef47b9f471504959267fd614d579cd=1591796554; Hm_up_e5ef47b9f471504959267fd614d579cd=%7B%22islogin%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isonline%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22isvip%22%3A%7B%22value%22%3A%220%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22qq_33184171%22%2C%22scope%22%3A1%7D%7D; Hm_ct_e5ef47b9f471504959267fd614d579cd=5744*1*qq_33184171!6525*1*10_9923125910-1585743227120-322102; c_first_ref=www.google.com; _gid=GA1.2.495504218.1591938897; c_utm_medium=distribute.pc_relevant.none-task-blog-baidujs-2; c_first_page=https%3A//blog.csdn.net/elaine_bao/article/details/78668657; Hm_lvt_6bcd52f51e9b3dce32bec4a3997715ac=1591940697,1591941146,1591941830,1591950262; announcement=%257B%2522isLogin%2522%253Atrue%252C%2522announcementUrl%2522%253A%2522https%253A%252F%252Flive.csdn.net%252Froom%252Fbjchenxu%252FvVsg8RCt%2522%252C%2522announcementCount%2522%253A0%252C%2522announcementExpire%2522%253A258044919%257D; c_adb=1; c_ref=https%3A//blog.csdn.net/qq_33184171/article/details/50274193; dc_tos=qbuqlr; Hm_lpvt_6bcd52f51e9b3dce32bec4a3997715ac=1592030512",
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
     }
     data = {"id": blog_id}
@@ -132,11 +99,39 @@ def write_hexo_md(data, blog_info):
                          key=key,
                          read_num=blog_info[2])
 
+    # spider_date = u'\n--- \n 博客爬取于`%s`\n***以下为正文***\n\n' %
+
     content = data["data"]["markdowncontent"].replace("@[toc]", "").replace("\n######", "\n###### ").replace("\n#####" , "\n##### ").replace("\n####"  , "\n#### ").replace("\n###"   , "\n### ").replace("\n##"    , "\n## ").replace("\n#"     , "\n# ").replace("# # # # # #"     , "######").replace("# # # # #"     , "#####").replace("# # # #"     , "####").replace("# # #"     , "###").replace("# #"     , "##")
 
     name = "{date}-{blog_id}".format(date=blog_info[1].split(" ")[0], blog_id=blog_info[0])
+
+    posts_top = '''# {title}
+
+{create_time}  [Tabris_](https://me.csdn.net/qq_33184171) 阅读数：{read_num}
+
+---
+
+博客爬取于`{date}`
+***以下为正文***
+
+版权声明：本文为Tabris原创文章，未经博主允许不得私自转载。
+https://blog.csdn.net/qq_33184171/article/details/{blog_id}
+
+<!-- more -->
+
+---
+
+'''.format(title=title,
+               create_time=blog_info[1],
+               date=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+               read_num=blog_info[2],
+               blog_id=blog_info[0])
+
     with open(f"./blogs/{name}.md", "w", encoding="utf-8") as f:
-        f.write(header + content)
+        f.write(header)
+        f.write(posts_top)
+        f.write(content)
+        f.write(content)
 
     print(f"写入 {name}")
 
@@ -163,5 +158,5 @@ def main(blogs):
         time.sleep(1)
 
 if __name__ == '__main__':
-    blogs = get_blog_id(9)
-    main(blogs)
+    # blogs = get_blog_id(9)
+    main(blogs_list.blogs_list)
